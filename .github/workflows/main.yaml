@@ -1,5 +1,3 @@
--- Github Action
-docker-hub/.github/workflows/main.yaml
 name: Deploy to Docker Hub
 
 on:
