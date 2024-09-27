@@ -1,0 +1,52 @@
+-- Github Action
+docker-hub/.github/workflows/main.yaml
+name: Deploy to Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+env:
+  DOCKER_REPOSITORY: bsh5761/docker-repo
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Login to Docker Hub
+      run: |
+        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+    - name: Build, tag, and push image to Docker Hub
+      id: build-image
+      run: |
+        GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
+        docker build -t $DOCKER_REPOSITORY:$GIT_HASH .
+        docker push $DOCKER_REPOSITORY:$GIT_HASH
+        echo "::set-output name=image::$DOCKER_REPOSITORY:$GIT_HASH"
+        
+    - name: Repository checkout
+      uses: actions/checkout@v2
+      with:
+        repository: BaekSeongHyeon/argocd-kube
+        token: ${{ secrets.MY_GITHUB_TOKEN }}
+
+    - name: Add date and push
+      run: |
+        GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
+        sed -i "16s|.*|      - image: $DOCKER_REPOSITORY:$GIT_HASH|g" deployment.yaml -> 이 코드가 16번째 줄을 수정함. 원래 sed명령어는 '/'를 넣어야하는데 '/'를 넣으면 에러가 발생함. 따라서 깃허브액션에 사용하려면 '/' 대신 '|' 을 이용
+        git add .
+        git config --global user.email "github-actions@github.com"
+        git config --global user.name "github-actions"
+        git commit -am "Inject Tag"
+        git push
