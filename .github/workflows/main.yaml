@@ -42,7 +42,7 @@ jobs:
     - name: Add date and push
       run: |
         GIT_HASH=$(git rev-parse --short "$GITHUB_SHA")
-        sed -i "16s|.*|      - image: $DOCKER_REPOSITORY:$GIT_HASH|g" deployment.yaml -> 이 코드가 16번째 줄을 수정함. 원래 sed명령어는 '/'를 넣어야하는데 '/'를 넣으면 에러가 발생함. 따라서 깃허브액션에 사용하려면 '/' 대신 '|' 을 이용
+        sed -i "16s|.*|      - image: $DOCKER_REPOSITORY:$GIT_HASH|g" deployment.yaml
         git add .
         git config --global user.email "github-actions@github.com"
         git config --global user.name "github-actions"
